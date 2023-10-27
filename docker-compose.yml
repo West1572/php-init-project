@@ -1,0 +1,37 @@
+version: '3.9'
+# образ для дебагинга
+  # https://habr.com/ru/articles/712670/
+#  Здесь репа для конфига дебагера
+#  https://gist.github.com/CViniciusSDias/c785b82e4f724d3737b43dfbe4ff8819
+
+services:
+    nginx:
+      image: nginx:1.25.2-alpine
+      container_name: nginx
+      ports:
+        - 8080:80
+      volumes:
+        - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        - ./src:/var/www/html
+        - ./logs/nginx:/var/log/nginx/
+      depends_on:
+        php:
+          condition: service_started
+    php:
+      container_name: php
+#      extra_hosts:
+#        - "host.docker.internal:host-gateway"
+      build:
+        context: .
+        dockerfile: php/php.dockerfile
+      working_dir: /var/www/php
+#      hostname: xdebug
+#      init: true
+      volumes:
+        - ./src:/var/www/html
+        - ./php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+        - ./php/conf.d/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+        - ./logs/php/xdebug.log:/var/log/xdebug.log
+#      expose:
+#        - 9000
+#      entrypoint: "php -S 0.0.0.0:8123"
